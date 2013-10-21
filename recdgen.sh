@@ -1,8 +1,8 @@
 #!/bin/bash
 # ファイル取得
-settingfile=/tmp/
-reclist=/tmp/
-reciepg=/tmp/
+settingfile=/filedir/
+reclist=/filedir/
+reciepg=/filedir/
 if [ ! -d ${reciepg}rec ]
 then
     if [ ! -d ${reciepg}iepg ]
