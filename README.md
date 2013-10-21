@@ -111,3 +111,10 @@ TV Recorder for PT3
   $ /home/usrdir/rectv.sh [ch] [length(minute)] ["title"] [iepg]
 
   Sample : /home/usrdir/rectv.sh 20 29 "title" 275088
+
+
+ライセンス
+----------
+Copyright &copy; 2013 Mahoroba Shinshi  
+Distributed under the [MIT License][mit].  
+[MIT]: http://www.opensource.org/licenses/mit-license.php
