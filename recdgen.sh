@@ -28,7 +28,7 @@ then
   fi
 fi
 str=( "start" "end" "year" "month" "date" "program-title" "station" )
-for (( i = 0; i < `cat ${settingfile}iepg.list | wc -l`; i++ ))
+for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
 {
   pgid+=( `cat ${settingfile}iepg.list | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
   sleep 2 && /usr/bin/wget -P ${reciepg}iepg/ http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reciepg}
