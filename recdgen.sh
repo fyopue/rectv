@@ -7,7 +7,7 @@ pusherrmsg () {
   errtime=`date "+%Y/%m/%d %H:%M:%S"`
   case ${1} in
     1 ) echo "${errtime} : ディレクトリの設定が間違っているようです。末尾にスラッシュがあるか確認してください。" >> /tmp/recdgen_err.log && exit 1 ;;
-    2 ) echo "${errtime} : ファイルの取得に失敗しました。iepg または ネットワークを確認してください。" ;;
+    2 ) echo "${errtime} : ファイルの取得に失敗しました。iepg.list または ネットワークを確認してください。" ;;
     3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
     4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
   esac >> /tmp/recdgen_err.log
