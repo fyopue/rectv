@@ -1,8 +1,9 @@
 #!/bin/bash
-# ファイル取得
+# prefix
 settingfile=/filedir/
 reclist=/filedir/
 reciepg=/filedir/
+# エラー処理
 pusherrmsg () {
   errtime=`date "+%Y/%m/%d %H:%M:%S"`
   case ${1} in
@@ -14,11 +15,13 @@ pusherrmsg () {
   rm -f ${2}iepg/*.* ${2}rec/*.*
   exit 1
 }
+# prefix内容チェック
 ckstg=( "${settingfile}" "${reclist}" "${reciepg}" )
 for (( i = 0; i < ${#ckstg[@]}; i++ ))
 {
   echo ${ckstg[i]} | grep /$ || pusherrmsg 1
 }
+# 作業ディレクトリ
 if [ ! -d ${reciepg}rec ]
 then
   mkdir ${reciepg}rec
@@ -27,6 +30,7 @@ then
     mkdir ${reciepg}iepg
   fi
 fi
+# ファイル取得
 str=( "start" "end" "year" "month" "date" "program-title" "station" )
 for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
 {
@@ -49,6 +53,7 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
       * ) dt+=${data[j]} ;;
     esac
   }
+# 開始終了時刻確認
   st=$(( $(( ${tm[0]} * 60 )) + ${tm[1]} ))
   if [ ${st} -eq 0 ]
   then
@@ -59,6 +64,7 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
       * ) ed=$(( $(( ${tm[2]} * 60 )) + ${tm[3]} )) ;;
     esac
   fi
+# 録画時間確認
   len=$(( ${ed} - ${st} - 1 ))
   if [ ${len} -lt 9 ]
   then
@@ -72,14 +78,19 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
       * ) tm[1]=$(( ${tm[1]} - 1 )) ;;
     esac
   fi
+# 個別job生成
   echo ${tm[1]} ${tm[0]} '*' '*' ${wk} "/home/usrdir/rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" ${pgid[i]} > ${reciepg}rec/${pgid[i]}.list
 }
+# 個別job生成確認
 ckjobdata=`cat ${reciepg}rec/*.*`
 if [ -z "${ckjobdata}" ]
 then
   pusherrmsg 4 ${reciepg}
 else
+# job生成
   cat ${reciepg}rec/*.* ${settingfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
 fi
+# crontab登録
 /usr/bin/crontab "${reclist}rec.list"
+# 作業ファイル削除
 rm -f ${reciepg}iepg/*.* ${reciepg}rec/*.*
