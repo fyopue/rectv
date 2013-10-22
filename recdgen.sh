@@ -4,7 +4,7 @@ settingfile=/filedir/
 reclist=/filedir/
 reciepg=/filedir/
 pusherrmsg () {
-  errtime=`date "+%Y/%m/%d %k:%M:%S"`
+  errtime=`date "+%Y/%m/%d %H:%M:%S"`
   case ${1} in
     1 ) echo "${errtime} : ディレクトリの設定が間違っているようです。末尾にスラッシュがあるか確認してください。" >> /tmp/recdgen_err.log && exit 1 ;;
     2 ) echo "${errtime} : ファイルの取得に失敗しました。iepg または ネットワークを確認してください。" ;;
@@ -42,7 +42,7 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -l`; i++ ))
       pusherrmsg 3 ${reciepg}
     fi
     case ${j} in
-      [0,1] ) tm+=( `date -d ${data[j]} "+%-k:%-M" | sed -e "s/:/ /"` ) ;;
+      [0,1] ) tm+=( `date -d ${data[j]} "+%-H:%-M"` ) ;;
       4 ) wk=`date -d ${dt}${data[j]} "+%w"` ;;
       5 ) ttl=${data[j]} ;;
       6 ) ch=( `cat ${settingfile}ch.list | grep ${data[j]}` ) ;;
