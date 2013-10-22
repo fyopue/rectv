@@ -63,6 +63,10 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -l`; i++ ))
   if [ ${len} -lt 9 ]
   then
     len=$(( ${ed} - ${st} + 2 ))
+    case ${tm[0]} in
+      0 ) tm[0]=23 ;;
+      * ) tm[0]=$(( ${tm[0]} - 1 )) ;;
+    esac
     case ${tm[1]} in
       0 ) tm[1]=$(( 6${tm[1]} - 1 )) ;;
       * ) tm[1]=$(( ${tm[1]} - 1 )) ;;
