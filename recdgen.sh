@@ -8,7 +8,8 @@ pusherrmsg () {
   case ${1} in
     1 ) echo "${errtime} : ファイルの取得に失敗しました。iepg または ネットワークを確認してください。" ;;
     2 ) echo "${errtime} : ディレクトリの設定が間違っているようです。末尾にスラッシュがあるか確認してください。" ;;
-    3 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
+    3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
+    4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
   esac >> /tmp/recdgen_err.log
   exit 1
 }
@@ -40,6 +41,10 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -l`; i++ ))
   for (( j = 0; j < ${#str[@]}; j++ ))
   {
     data+=( `cat ${reciepg}iepg/iepg.php?PID=${pgid[i]} | iconv -f cp932 -t utf-8 | grep ${str[j]} | sed -e "s/${str[j]}: \|<\|>\|\r\|\n//g" -e "s/ \|　/_/g"` )
+    if [ -z "${data[j]}" ]
+    then
+      pusherrmsg 3
+    fi
     case ${j} in
       [0,1] ) tm+=( `date -d ${data[j]} "+%-k:%-M" | sed -e "s/:/ /"` ) ;;
       4 ) wk=`date -d ${dt}${data[j]} "+%w"` ;;
@@ -73,7 +78,7 @@ rm -f ${reciepg}iepg/*.*
 ckjobdata=`cat ${reciepg}rec/*.*`
 if [ -z "${ckjobdata}" ]
 then
-  pusherrmsg 3
+  pusherrmsg 4
 else
   cat ${reciepg}rec/*.* ${settingfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
 fi
