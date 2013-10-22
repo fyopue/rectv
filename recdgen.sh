@@ -42,7 +42,7 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -l`; i++ ))
       pusherrmsg 3 ${reciepg}
     fi
     case ${j} in
-      [0,1] ) tm+=( `date -d ${data[j]} "+%-H:%-M"` ) ;;
+      [0,1] ) tm+=( `date -d ${data[j]} "+%-H %-M"` ) ;;
       4 ) wk=`date -d ${dt}${data[j]} "+%w"` ;;
       5 ) ttl=${data[j]} ;;
       6 ) ch=( `cat ${settingfile}ch.list | grep ${data[j]}` ) ;;
