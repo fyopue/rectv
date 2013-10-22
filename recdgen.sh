@@ -70,7 +70,6 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -l`; i++ ))
   fi
   echo ${tm[1]} ${tm[0]} '*' '*' ${wk} "/home/usrdir/rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" ${pgid[i]} > ${reciepg}rec/${pgid[i]}.list
 }
-rm -f ${reciepg}iepg/*.*
 ckjobdata=`cat ${reciepg}rec/*.*`
 if [ -z "${ckjobdata}" ]
 then
@@ -78,6 +77,6 @@ then
 else
   cat ${reciepg}rec/*.* ${settingfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
 fi
+/usr/bin/crontab "${reclist}rec.list"
+rm -f ${reciepg}iepg/*.*
 rm -f ${reciepg}rec/*.*
-/usr/bin/crontab "${reclist}rec.list" 
-
