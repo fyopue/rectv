@@ -21,10 +21,10 @@ for (( i = 0; i < ${#ckstg[@]}; i++ ))
 }
 if [ ! -d ${reciepg}rec ]
 then
+  mkdir ${reciepg}rec
   if [ ! -d ${reciepg}iepg ]
   then
-      mkdir ${reciepg}rec
-      mkdir ${reciepg}iepg
+    mkdir ${reciepg}iepg
   fi
 fi
 str=( "start" "end" "year" "month" "date" "program-title" "station" )
