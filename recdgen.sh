@@ -6,22 +6,18 @@ reciepg=/filedir/
 pusherrmsg () {
   errtime=`date "+%Y/%m/%d %k:%M:%S"`
   case ${1} in
-    1 ) echo "${errtime} : ファイルの取得に失敗しました。iepg または ネットワークを確認してください。" ;;
-    2 ) echo "${errtime} : ディレクトリの設定が間違っているようです。末尾にスラッシュがあるか確認してください。" ;;
+    1 ) echo "${errtime} : ディレクトリの設定が間違っているようです。末尾にスラッシュがあるか確認してください。" ;;
+    2 ) echo "${errtime} : ファイルの取得に失敗しました。iepg または ネットワークを確認してください。" ;;
     3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
     4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
   esac >> /tmp/recdgen_err.log
+  rm -f ${2}iepg/*.* ${2}rec/*.*
   exit 1
-}
-wgerr () {
-  rm -f ${1}iepg/*.*
-  rm -f ${1}rec/*.*
-  pusherrmsg 1
 }
 ckstg=( "${settingfile}" "${reclist}" "${reciepg}" )
 for (( i = 0; i < ${#ckstg[@]}; i++ ))
 {
-  echo ${ckstg[i]} | grep /$ || pusherrmsg 2
+  echo ${ckstg[i]} | grep /$ || pusherrmsg 1
 }
 if [ ! -d ${reciepg}rec ]
 then
@@ -35,7 +31,7 @@ str=( "start" "end" "year" "month" "date" "program-title" "station" )
 for (( i = 0; i < `cat ${settingfile}iepg.list | wc -l`; i++ ))
 {
   pgid+=( `cat ${settingfile}iepg.list | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
-  sleep 2 && /usr/bin/wget -P ${reciepg}iepg/ http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || wgerr ${reciepg}
+  sleep 2 && /usr/bin/wget -P ${reciepg}iepg/ http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reciepg}
 # ファイル処理
   unset data tm dt len
   for (( j = 0; j < ${#str[@]}; j++ ))
@@ -43,7 +39,7 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -l`; i++ ))
     data+=( `cat ${reciepg}iepg/iepg.php?PID=${pgid[i]} | iconv -f cp932 -t utf-8 | grep ${str[j]} | sed -e "s/${str[j]}: \|<\|>\|\r\|\n//g" -e "s/ \|　/_/g"` )
     if [ -z "${data[j]}" ]
     then
-      pusherrmsg 3
+      pusherrmsg 3 ${reciepg}
     fi
     case ${j} in
       [0,1] ) tm+=( `date -d ${data[j]} "+%-k:%-M" | sed -e "s/:/ /"` ) ;;
@@ -78,9 +74,10 @@ rm -f ${reciepg}iepg/*.*
 ckjobdata=`cat ${reciepg}rec/*.*`
 if [ -z "${ckjobdata}" ]
 then
-  pusherrmsg 4
+  pusherrmsg 4 ${reciepg}
 else
   cat ${reciepg}rec/*.* ${settingfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
 fi
 rm -f ${reciepg}rec/*.*
 /usr/bin/crontab "${reclist}rec.list" 
+
