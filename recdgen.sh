@@ -78,5 +78,4 @@ else
   cat ${reciepg}rec/*.* ${settingfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
 fi
 /usr/bin/crontab "${reclist}rec.list"
-rm -f ${reciepg}iepg/*.*
-rm -f ${reciepg}rec/*.*
+rm -f ${reciepg}iepg/*.* ${reciepg}rec/*.*
