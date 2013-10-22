@@ -49,7 +49,7 @@ PT3用TV録画スクリプト
   パッケージに含まれている ch.list  iepg.list  routine.list はサンプルファイルです。  
   内容はサンプルを参考に各個人の環境に合わせて作成してください。
 
-  settingfileはユーザールート以下のディレクトリ、reclis、treciepgは/tmp/などにしておくと便利です。  
+  settingfileはユーザールート以下のディレクトリ、reclist、reciepgは/tmp/などにしておくと便利です。  
   スクリプトには実行権限を忘れずに。
 
 ※注意：  
