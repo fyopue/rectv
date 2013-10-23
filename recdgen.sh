@@ -72,9 +72,9 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
     if [ ${st} -eq 0 ]
     then
       tm[0]=23
-      tm[1]=$(( 6${tm[1]} - 1 )) ;;
+      tm[1]=$(( 6${tm[1]} - 1 ))
     else
-      tm[1]=$(( ${tm[1]} - 1 )) ;;
+      tm[1]=$(( ${tm[1]} - 1 ))
     fi
   fi
 # 個別job生成
