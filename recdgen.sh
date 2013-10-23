@@ -57,7 +57,7 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
   st=$(( $(( ${tm[0]} * 60 )) + ${tm[1]} ))
   if [ ${st} -eq 0 ]
   then
-      ed=$(( $(( ${tm[2]} * 60 )) + ${tm[3]} ))
+    ed=$(( $(( ${tm[2]} * 60 )) + ${tm[3]} ))
   else
     case ${tm[2]} in
       0 ) ed=$(( $(( 24 * 60 )) + ${tm[3]} )) ;;
@@ -69,14 +69,13 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
   if [ ${len} -lt 9 ]
   then
     len=$(( ${ed} - ${st} + 2 ))
-    case ${tm[0]} in
-      0 ) tm[0]=23 ;;
-      * ) tm[0]=$(( ${tm[0]} - 1 )) ;;
-    esac
-    case ${tm[1]} in
-      0 ) tm[1]=$(( 6${tm[1]} - 1 )) ;;
-      * ) tm[1]=$(( ${tm[1]} - 1 )) ;;
-    esac
+    if [ ${st} -eq 0 ]
+    then
+      tm[0]=23
+      tm[1]=$(( 6${tm[1]} - 1 )) ;;
+    else
+      tm[1]=$(( ${tm[1]} - 1 )) ;;
+    fi
   fi
 # 個別job生成
   echo ${tm[1]} ${tm[0]} '*' '*' ${wk} "/home/usrdir/rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" ${pgid[i]} > ${reciepg}rec/${pgid[i]}.list
