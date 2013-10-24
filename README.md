@@ -40,11 +40,7 @@ PT3用TV録画スクリプト
   ch.list（チャンネル変換表）  
   iepg.list（iepgダウンロードリスト）  
   routine.list（その他Cronjobリスト）  
-  以上の4つのファイルをホームディレクトリ以下の任意のディレクトリに保存します。  
-  recdgen.sh を開き 2行目 usrdir=/home/usrdir/ の /home/usrdir/ を rectv.sh を保存したディレクトリに  
-  3行目 stgfile=${usrdir}stgdir/ を *.listファイルを保存したディレクトリに書き換えます。  
-  4行目 reclist=/tmp/ を任意のディレクトリに書き換えれば設定完了です。  
-  末尾には必ず/をつけてください。
+  以上の4つのファイルをホームディレクトリ以下の任意のディレクトリに保存します。   
 
   パッケージに含まれている ch.list  iepg.list  routine.list はサンプルファイルです。  
   内容はサンプルを参考に各個人の環境に合わせて作成してください。
@@ -61,26 +57,24 @@ PT3用TV録画スクリプト
 
 ・録画スクリプト（rectv.sh）  
   rectv.sh を任意のディレクトリに保存します。  
-  rectv.sh を開き 6行目 settingfile=/filedir/ の /filedir/ を  
-  recdgen.sh で書き換えたものと同じディレクトリに書き換えます。  
-  15行目 d1="hdd-id01" のhdd-id01を録画用HDD1台目のマウントポイントに、  
-  16行目 d2="hdd-id02" のhdd-id02を録画用HDD2台目のマウントポイントにそれぞれ書き換えれば設定完了です。  
+  9行目 d1="hdd-id01" のhdd-id01を録画用HDD1台目のマウントポイントに、  
+  10行目 d2="hdd-id02" のhdd-id02を録画用HDD2台目のマウントポイントにそれぞれ書き換えれば設定完了です。  
 
 
 ■使い方
 
 ・Cronjob生成スクリプト  
-  $ /home/usrdir/recdgen.sh
+  $ /home/usrdir/rectv/recdgen.sh
 
   Cronjob生成スクリプトはiepg.listに記載された番号のiepgファイルを取得して  
   Cronjobを生成、routine.listの内容と結合してcrontabに登録します。  
   元データはしょぼいカレンダーから取得しています。  
-  オプション、引数は特にありません。
+  オプション、引数はありません。
 
   次のような書式のデータを生成します。  
-  0 0 * * 0 /home/usrdir/recode2.sh 20 29 "物語シリーズ_セカンドシーズン" 275088  
-  26 22 * * 0 /home/usrdir/rectv.sh 20 5 "てーきゅう(3)" 273803  
-  30 7 * * 2 /home/usrdir/rectv.sh 23 29 "マイリトルポニー" 274718  
+  0 0 * * 0 /home/usrdir/rectv/rectv.sh 20 29 "物語シリーズ_セカンドシーズン" 275088  
+  26 22 * * 0 /home/usrdir/rectv/rectv.sh 20 5 "てーきゅう(3)" 273803  
+  30 7 * * 2 /home/usrdir/rectv/rectv.sh 23 29 "マイリトルポニー" 274718  
 
 ※注意：  
   実行すると、既存のjobをすべて上書きします。  
@@ -89,11 +83,11 @@ PT3用TV録画スクリプト
   また、万一のためにcrontabの定期的なバックアップを必ず行なってください。  
 
 ・録画スクリプト  
-  $ /home/usrdir/rectv.sh [チャンネル番号] [時間（分）] ["タイトル"] [iepg番号]  
+  $ /home/usrdir/rectv/rectv.sh [チャンネル番号] [時間（分）] ["タイトル"] [iepg番号]  
   使用サンプル :  
-  $ /home/usrdir/rectv.sh 20 29 "物語シリーズ_セカンドシーズン" 275088  
+  $ /home/usrdir/rectv/rectv.sh 20 29 "物語シリーズ_セカンドシーズン" 275088  
 
-  録画スクリプトは[チャンネル番号][時間（分）]["タイトル"]を引数として読み込み指定の時間分録画を行います。  
+  録画スクリプトは[チャンネル番号] [時間（分）] ["タイトル"]を引数として読み込み指定の時間分録画を行います。  
   オプションの引数として[iepg番号]を指定することができます。  
   これは、Cronjob生成スクリプトで使用するiepg.listを更新するための数値です。
 
@@ -105,12 +99,12 @@ TV Recorder for PT3 (rectv.sh)
 Command line
 
 TV Program Generator for PT3  
-  $ /home/usrdir/recdgen.sh
+  $ /home/usrdir/rectv/recdgen.sh
 
 TV Recorder for PT3  
   $ /home/usrdir/rectv.sh [ch] [length(minute)] ["title"] [iepg]
 
-  Sample : /home/usrdir/rectv.sh 20 29 "title" 275088
+  Sample : /home/usrdir/rectv/rectv.sh 20 29 "title" 275088
 
 
 ライセンス
