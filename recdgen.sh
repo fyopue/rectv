@@ -46,7 +46,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
   then
     if [ 8 -le "${nxtm}" ]
     then
-      sp='#'
+      sp="#"
     fi
   fi
   while :
