@@ -40,16 +40,16 @@ PT3用TV録画スクリプト
   ch.list（チャンネル変換表）  
   iepg.list（iepgダウンロードリスト）  
   routine.list（その他Cronjobリスト）  
-  以上の4つのファイルを任意のディレクトリに保存します。  
-  recdgen.sh を開き 2行目 settingfile=/filedir/ の /filedir/ を
-  *.listファイルを保存したディレクトリに書き換えます。  
-  同様に3行目 reclist=/filedir/ 4行目 reciepg=/filedir/ を任意のディレクトリに書き換えれば設定完了です。  
-  末尾には/をつけてください。
+  以上の4つのファイルをホームディレクトリ以下の任意のディレクトリに保存します。  
+  recdgen.sh を開き 2行目 usrdir=/home/usrdir/ の /home/usrdir/ を rectv.sh を保存したディレクトリに  
+  3行目 stgfile=${usrdir}stgdir/ を *.listファイルを保存したディレクトリに書き換えます。  
+  4行目 reclist=/tmp/ を任意のディレクトリに書き換えれば設定完了です。  
+  末尾には必ず/をつけてください。
 
   パッケージに含まれている ch.list  iepg.list  routine.list はサンプルファイルです。  
   内容はサンプルを参考に各個人の環境に合わせて作成してください。
 
-  settingfileはユーザールート以下のディレクトリ、reclist、reciepgは/tmp/などにしておくと便利です。  
+  reclistは物理メモリ上に置いたディレクトリにしておくと便利です。  
   スクリプトには実行権限を忘れずに。
 
 ※注意：  
