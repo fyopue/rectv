@@ -93,4 +93,4 @@ fi
 # crontab登録
 /usr/bin/crontab "${reclist}rec.list"
 # 作業ファイル削除
-rm -f "${reclist}iepg/*.*" "${reclist}rec/*.*"
+rm "${reclist}iepg/*.*" "${reclist}rec/*.*"
