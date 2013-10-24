@@ -13,7 +13,7 @@ pusherrmsg () {
     3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
     4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
   esac >> /tmp/recdgen_err.log
-  rm -f "${2}iepg/*.*" "${2}rec/*.*"
+  rm -f ${2}iepg/*.* ${2}rec/*.*
   exit 1
 }
 # prefix内容チェック
@@ -88,9 +88,9 @@ then
   pusherrmsg 4 ${reclist}
 else
 # job生成
-  cat "${reclist}rec/*.*" "${stgfile}routine.list" | /usr/bin/sort -k 5 > "${reclist}rec.list"
+  cat ${reclist}rec/*.* "${stgfile}routine.list" | /usr/bin/sort -k 5 > "${reclist}rec.list"
 fi
 # crontab登録
 /usr/bin/crontab "${reclist}rec.list"
 # 作業ファイル削除
-rm "${reclist}iepg/*.*" "${reclist}rec/*.*"
+rm ${reclist}iepg/*.* ${reclist}rec/*.*
