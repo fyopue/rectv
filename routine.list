@@ -1,3 +1,0 @@
-0 5,15 * * * /filedir/ctbup.sh 10
-40 4,14,21 * * * /filedir/recdgen.sh
-0 22 * * 5 /filedir/rectv.sh 22 54 "クロコーチ"
