@@ -1,7 +1,7 @@
 #!/bin/bash
 # prefix
 usrdir=/home/usrdir/
-settingfile=${usrdir}stgdir/
+stgfile=${usrdir}stgdir/
 reclist=/filedir/
 # エラー処理
 pusherrmsg () {
@@ -16,7 +16,7 @@ pusherrmsg () {
   exit 1
 }
 # prefix内容チェック
-ckstg=( "${settingfile}" "${reclist}" "${reclist}" )
+ckstg=( "${usrdir}" "${stgfile}" "${reclist}" )
 for (( i = 0; i < ${#ckstg[@]}; i++ ))
 {
   echo ${ckstg[i]} | grep /$ || pusherrmsg 1
@@ -32,9 +32,9 @@ then
 fi
 # ファイル取得
 str=( "start" "end" "year" "month" "date" "program-title" "station" )
-for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
+for (( i = 0; i < `cat ${stgfile}iepg.list | wc -w`; i++ ))
 {
-  pgid+=( `cat ${settingfile}iepg.list | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
+  pgid+=( `cat ${stgfile}iepg.list | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
   sleep 2 && /usr/bin/wget -P ${reclist}iepg/ http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
 # ファイル処理
   unset data tm dt len
@@ -49,7 +49,7 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
       [0,1] ) tm+=( `date -d ${data[j]} "+%-H %-M"` ) ;;
       4 ) wk=`date -d ${dt}${data[j]} "+%w"` ;;
       5 ) ttl=${data[j]} ;;
-      6 ) ch=( `cat ${settingfile}ch.list | grep ${data[j]}` ) ;;
+      6 ) ch=( `cat ${stgfile}ch.list | grep ${data[j]}` ) ;;
       * ) dt+=${data[j]} ;;
     esac
   }
@@ -87,7 +87,7 @@ then
   pusherrmsg 4 ${reclist}
 else
 # job生成
-  cat ${reclist}rec/*.* ${settingfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
+  cat ${reclist}rec/*.* ${stgfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
 fi
 # crontab登録
 /usr/bin/crontab "${reclist}rec.list"
