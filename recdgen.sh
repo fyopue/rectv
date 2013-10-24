@@ -26,34 +26,49 @@ for (( i = 0; i < ${#ckstg[@]}; i++ ))
 if [ ! -d "${reclist}rec" ]
 then
   mkdir "${reclist}rec"
-  if [ ! -d "${reclist}iepg" ]
-  then
-    mkdir "${reclist}iepg"
-  fi
+fi
+if [ ! -d "${reclist}iepg" ]
+then
+  mkdir "${reclist}iepg"
 fi
 # ファイル取得
-str=( "start" "end" "year" "month" "date" "program-title" "station" )
 for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 {
   pgid+=( `cat "${stgfile}iepg.list" | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
   sleep 2 && /usr/bin/wget -P "${reclist}iepg/" http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
 # ファイル処理
-  unset data tm dt len
-  for (( j = 0; j < ${#str[@]}; j++ ))
+  unset data dt tm len
+  data=(`cat "${reclist}iepg/iepg.php?PID=${pgid[i]}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n//g"`)
+  while :
+  do
+    if [ "${data[1]}${data[2]}${data[3]}" -lt `date +%Y%m%d` ]
+    then
+# データ古い時
+      unset data
+      iepgnum=`cat ${stgfile}iepg.list | sed -e "s/${pgid[i]}/$((${pgid[i]}+1))/"`
+      echo ${iepgnum} | sed -e "s/\r\|\n//g" -e "s/ /\n/g" > ${stgfile}iepg.list
+      rm "${reclist}iepg/iepg.php?PID=${pgid[i]}"
+      pgid[i]=$(( ${pgid[i]} + 1 ))
+      sleep 2 && /usr/bin/wget -P "${reclist}iepg/" http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
+      data=(`cat "${reclist}iepg/iepg.php?PID=${pgid[i]}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n//g"`)
+    else
+      break
+    fi
+  done
+  for (( j = 0; j < ${#data[@]}; j++ ))
   {
-    data+=( `cat "${reclist}iepg/iepg.php?PID=${pgid[i]}" | iconv -f cp932 -t utf-8 | grep ${str[j]} | sed -e "s/${str[j]}: \|<\|>\|\r\|\n//g" -e "s/ \|　/_/g"` )
     if [ -z "${data[j]}" ]
     then
       pusherrmsg 3 ${reclist}
     fi
     case ${j} in
-      [0,1] ) tm+=( `date -d ${data[j]} "+%-H %-M"` ) ;;
-      4 ) wk=`date -d ${dt}${data[j]} "+%w"` ;;
-      5 ) ttl=${data[j]} ;;
-      6 ) ch=( `cat "${stgfile}ch.list" | grep ${data[j]}` ) ;;
+      0 ) ch=( `cat "${stgfile}ch.list" | grep ${data[j]}` ) ;;
+      [4,5] ) tm+=( `date -d ${data[j]} "+%-H %-M"` ) ;;
+      6 ) ttl=${data[j]} ;;
       * ) dt+=${data[j]} ;;
     esac
   }
+  wk=`date -d ${dt} "+%w"`
 # 開始終了時刻確認
   st=$(( $(( ${tm[0]} * 60 )) + ${tm[1]} ))
   if [ ${st} -eq 0 ]
