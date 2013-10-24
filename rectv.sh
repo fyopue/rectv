@@ -30,9 +30,9 @@ fi
 u="9[6-9]%\|100%"
 dck=`df -h | $g ${d1} | $g ${u} | wc -l`
 case ${dck} in
-	1 ) df -h | $g ${d2} | $g ${u} && exit
-	dr=${d2} ;;
-	* ) dr=${d1} ;;
+  1 ) df -h | $g ${d2} | $g ${u} && exit
+  dr=${d2} ;;
+  * ) dr=${d1} ;;
 esac
 cd /media/${dr}/recdir/ || exit
 /usr/local/bin/recpt1 --b25 --strip --sid ${sid} ${1} ${mt} ${1}_${3}_${dt}.ts
