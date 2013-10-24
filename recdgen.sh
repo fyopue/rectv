@@ -37,17 +37,14 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
   pgid+=( `cat "${stgfile}iepg.list" | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
   sleep 2 && /usr/bin/wget -P "${reclist}iepg/" http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
 # ファイル処理
-  unset data dt tm len nxtm
+  unset data dt tm len nxtm sp
   data=(`cat "${reclist}iepg/iepg.php?PID=${pgid[i]}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n//g"`)
 # 休止確認
   nxtm=( `date -d "\`date +%Y%m%d\`" +%s` - `date -d "${data[1]}${data[2]}${data[3]}" +%s` )
   nxtm=`echo $(( $(( ${nxtm[@]} )) / 86400 )) | grep ^- | sed -e "s/^-//"`
-  if [ -n "${nxtm}" ]
+  if [ -n "${nxtm}" -a 8 -le "${nxtm}" ]
   then
-    if [ 8 -le "${nxtm}" ]
-    then
-      sp="#"
-    fi
+    sp="# "
   fi
   while :
   do
