@@ -37,9 +37,9 @@ PT3用TV録画スクリプト
 
 ・Cronjob生成スクリプト（recdgen.sh）  
   recdgen.sh（スクリプト本体）  
-  ch.list（チャンネル変換表）  
-  iepg.list（iepgダウンロードリスト）  
-  routine.list（その他Cronjobリスト）  
+  recstg/ch.list（チャンネル変換表）  
+  recstg/iepg.list（iepgダウンロードリスト）  
+  recstg/routine.list（その他Cronjobリスト）  
   以上の4つのファイルをホームディレクトリ以下の任意のディレクトリに保存します。   
 
   パッケージに含まれている ch.list  iepg.list  routine.list はサンプルファイルです。  
