@@ -1,8 +1,8 @@
 #!/bin/bash
 # prefix
-settingfile=/filedir/
+usrdir=/home/usrdir/
+settingfile=${usrdir}stgdir/
 reclist=/filedir/
-reciepg=/filedir/
 # エラー処理
 pusherrmsg () {
   errtime=`date "+%Y/%m/%d %H:%M:%S"`
@@ -16,18 +16,18 @@ pusherrmsg () {
   exit 1
 }
 # prefix内容チェック
-ckstg=( "${settingfile}" "${reclist}" "${reciepg}" )
+ckstg=( "${settingfile}" "${reclist}" "${reclist}" )
 for (( i = 0; i < ${#ckstg[@]}; i++ ))
 {
   echo ${ckstg[i]} | grep /$ || pusherrmsg 1
 }
 # 作業ディレクトリ
-if [ ! -d ${reciepg}rec ]
+if [ ! -d ${reclist}rec ]
 then
-  mkdir ${reciepg}rec
-  if [ ! -d ${reciepg}iepg ]
+  mkdir ${reclist}rec
+  if [ ! -d ${reclist}iepg ]
   then
-    mkdir ${reciepg}iepg
+    mkdir ${reclist}iepg
   fi
 fi
 # ファイル取得
@@ -35,15 +35,15 @@ str=( "start" "end" "year" "month" "date" "program-title" "station" )
 for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
 {
   pgid+=( `cat ${settingfile}iepg.list | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
-  sleep 2 && /usr/bin/wget -P ${reciepg}iepg/ http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reciepg}
+  sleep 2 && /usr/bin/wget -P ${reclist}iepg/ http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
 # ファイル処理
   unset data tm dt len
   for (( j = 0; j < ${#str[@]}; j++ ))
   {
-    data+=( `cat ${reciepg}iepg/iepg.php?PID=${pgid[i]} | iconv -f cp932 -t utf-8 | grep ${str[j]} | sed -e "s/${str[j]}: \|<\|>\|\r\|\n//g" -e "s/ \|　/_/g"` )
+    data+=( `cat ${reclist}iepg/iepg.php?PID=${pgid[i]} | iconv -f cp932 -t utf-8 | grep ${str[j]} | sed -e "s/${str[j]}: \|<\|>\|\r\|\n//g" -e "s/ \|　/_/g"` )
     if [ -z "${data[j]}" ]
     then
-      pusherrmsg 3 ${reciepg}
+      pusherrmsg 3 ${reclist}
     fi
     case ${j} in
       [0,1] ) tm+=( `date -d ${data[j]} "+%-H %-M"` ) ;;
@@ -57,7 +57,7 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
   st=$(( $(( ${tm[0]} * 60 )) + ${tm[1]} ))
   if [ ${st} -eq 0 ]
   then
-    ed=$(( $(( ${tm[2]} * 60 )) + ${tm[3]} ))
+      ed=$(( $(( ${tm[2]} * 60 )) + ${tm[3]} ))
   else
     case ${tm[2]} in
       0 ) ed=$(( $(( 24 * 60 )) + ${tm[3]} )) ;;
@@ -78,18 +78,18 @@ for (( i = 0; i < `cat ${settingfile}iepg.list | wc -w`; i++ ))
     fi
   fi
 # 個別job生成
-  echo ${tm[1]} ${tm[0]} '*' '*' ${wk} "/home/usrdir/rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" ${pgid[i]} > ${reciepg}rec/${pgid[i]}.list
+  echo ${tm[1]} ${tm[0]} '*' '*' ${wk} "${usrdir}rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" ${pgid[i]} > ${reclist}rec/${pgid[i]}.list
 }
 # 個別job生成確認
-ckjobdata=`cat ${reciepg}rec/*.*`
+ckjobdata=`cat ${reclist}rec/*.*`
 if [ -z "${ckjobdata}" ]
 then
-  pusherrmsg 4 ${reciepg}
+  pusherrmsg 4 ${reclist}
 else
 # job生成
-  cat ${reciepg}rec/*.* ${settingfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
+  cat ${reclist}rec/*.* ${settingfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
 fi
 # crontab登録
 /usr/bin/crontab "${reclist}rec.list"
 # 作業ファイル削除
-rm -f ${reciepg}iepg/*.* ${reciepg}rec/*.*
+rm -f ${reclist}iepg/*.* ${reclist}rec/*.*
