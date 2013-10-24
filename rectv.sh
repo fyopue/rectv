@@ -17,15 +17,15 @@ case "${1}" in
 esac
 flag=`cat "${stgfile}drive.txt"`
 case ${flag} in
-    ${d1} ) ;;
-    ${d2} ) d2=${d1}
-    d1=${flag} ;;
-    * ) flag=${d1} ;;
+  ${d1} ) ;;
+  ${d2} ) d2=${d1}
+  d1=${flag} ;;
+  * ) flag=${d1} ;;
 esac
 if [ ! -d /media/${d1} ]
 then
-    d1=${d2}
-    d2=${flag}
+  d1=${d2}
+  d2=${flag}
 fi
 u="9[6-9]%\|100%"
 dck=`df -h | $g ${d1} | $g ${u} | wc -l`
