@@ -15,7 +15,7 @@ case "${1}" in
   "103" | "910" ) sid=${1} ;;
   * ) sid=hd ;;
 esac
-flag=`cat "${stgfile}drive.txt"`
+flag=`cat "${stgfile}drive.list"`
 case ${flag} in
   ${d1} ) ;;
   ${d2} ) d2=${d1}
@@ -36,7 +36,7 @@ case ${dck} in
 esac
 cd /media/${dr}/recdir/ || exit
 /usr/local/bin/recpt1 --b25 --strip --sid ${sid} ${1} ${mt} ${1}_${3}_${dt}.ts
-echo "${dr}" > "${stgfile}drive.txt"
+echo "${dr}" > "${stgfile}drive.list"
 if [ -n "${4}" ]
 then
   sleep $(($RANDOM%50)) && iepgnum=`cat ${stgfile}iepg.list | sed -e "s/${4}/$(( ${4} + 1 ))/"`
