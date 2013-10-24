@@ -2,7 +2,7 @@
 # prefix
 usrdir=/home/usrdir/
 stgfile=${usrdir}stgdir/
-reclist=/filedir/
+reclist=/tmp/
 # エラー処理
 pusherrmsg () {
   errtime=`date "+%Y/%m/%d %H:%M:%S"`
