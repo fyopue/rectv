@@ -10,7 +10,7 @@ d1="hdd-id01"
 d2="hdd-id02"
 g="grep"
 dt=`date +%y%m%d%H%M%S`
-mt=`echo $(( 60 * ${2} ))`
+mt=$(( 60 * ${2} ))
 case "${1}" in
   "103" | "910" ) sid=${1} ;;
   * ) sid=hd ;;
