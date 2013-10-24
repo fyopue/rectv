@@ -1,7 +1,8 @@
 #!/bin/bash
 # prefix
-usrdir=/home/usrdir/
-stgfile=${usrdir}stgdir/
+#usrdir="/home/`/usr/bin/whoami`/"
+usrdir="`/usr/bin/dirname ${0}`/"
+stgfile="${usrdir}recstg/"
 reclist=/tmp/
 # エラー処理
 pusherrmsg () {
@@ -12,7 +13,7 @@ pusherrmsg () {
     3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
     4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
   esac >> /tmp/recdgen_err.log
-  rm -f ${2}iepg/*.* ${2}rec/*.*
+  rm -f "${2}iepg/*.*" "${2}rec/*.*"
   exit 1
 }
 # prefix内容チェック
@@ -22,25 +23,25 @@ for (( i = 0; i < ${#ckstg[@]}; i++ ))
   echo ${ckstg[i]} | grep /$ || pusherrmsg 1
 }
 # 作業ディレクトリ
-if [ ! -d ${reclist}rec ]
+if [ ! -d "${reclist}rec" ]
 then
-  mkdir ${reclist}rec
-  if [ ! -d ${reclist}iepg ]
+  mkdir "${reclist}rec"
+  if [ ! -d "${reclist}iepg" ]
   then
-    mkdir ${reclist}iepg
+    mkdir "${reclist}iepg"
   fi
 fi
 # ファイル取得
 str=( "start" "end" "year" "month" "date" "program-title" "station" )
-for (( i = 0; i < `cat ${stgfile}iepg.list | wc -w`; i++ ))
+for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 {
-  pgid+=( `cat ${stgfile}iepg.list | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
-  sleep 2 && /usr/bin/wget -P ${reclist}iepg/ http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
+  pgid+=( `cat "${stgfile}iepg.list" | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
+  sleep 2 && /usr/bin/wget -P "${reclist}iepg/" http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
 # ファイル処理
   unset data tm dt len
   for (( j = 0; j < ${#str[@]}; j++ ))
   {
-    data+=( `cat ${reclist}iepg/iepg.php?PID=${pgid[i]} | iconv -f cp932 -t utf-8 | grep ${str[j]} | sed -e "s/${str[j]}: \|<\|>\|\r\|\n//g" -e "s/ \|　/_/g"` )
+    data+=( `cat "${reclist}iepg/iepg.php?PID=${pgid[i]}" | iconv -f cp932 -t utf-8 | grep ${str[j]} | sed -e "s/${str[j]}: \|<\|>\|\r\|\n//g" -e "s/ \|　/_/g"` )
     if [ -z "${data[j]}" ]
     then
       pusherrmsg 3 ${reclist}
@@ -49,7 +50,7 @@ for (( i = 0; i < `cat ${stgfile}iepg.list | wc -w`; i++ ))
       [0,1] ) tm+=( `date -d ${data[j]} "+%-H %-M"` ) ;;
       4 ) wk=`date -d ${dt}${data[j]} "+%w"` ;;
       5 ) ttl=${data[j]} ;;
-      6 ) ch=( `cat ${stgfile}ch.list | grep ${data[j]}` ) ;;
+      6 ) ch=( `cat "${stgfile}ch.list" | grep ${data[j]}` ) ;;
       * ) dt+=${data[j]} ;;
     esac
   }
@@ -87,9 +88,9 @@ then
   pusherrmsg 4 ${reclist}
 else
 # job生成
-  cat ${reclist}rec/*.* ${stgfile}routine.list | /usr/bin/sort -k 5 > ${reclist}rec.list
+  cat "${reclist}rec/*.*" "${stgfile}routine.list" | /usr/bin/sort -k 5 > "${reclist}rec.list"
 fi
 # crontab登録
 /usr/bin/crontab "${reclist}rec.list"
 # 作業ファイル削除
-rm -f ${reclist}iepg/*.* ${reclist}rec/*.*
+rm -f "${reclist}iepg/*.*" "${reclist}rec/*.*"
