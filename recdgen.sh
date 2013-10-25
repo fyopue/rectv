@@ -1,8 +1,8 @@
 #!/bin/bash
-# prefix
+# ディレクトリ設定
 #usrdir="/home/`/usr/bin/whoami`/"
 usrdir="`/usr/bin/dirname ${0}`/"
-stgfile="${usrdir}recstg/"
+stgfile=${usrdir}recstg/
 reclist=/tmp/
 # エラー処理
 pusherrmsg () {
@@ -12,11 +12,32 @@ pusherrmsg () {
     2 ) echo "${errtime} : ファイルの取得に失敗しました。iepg.list または ネットワークを確認してください。" ;;
     3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
     4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
+    5 ) echo "${errtime} : 番組情報が存在しないため ${3} をリストから削除しました。放送が終了したか、存在しない番組です。" ;;
   esac >> /tmp/recdgen_err.log
-  rm -f ${2}iepg/*.* ${2}rec/*.*
-  exit 1
+  if [ -z "${3}" ]
+  then
+    rm -f ${2}iepg/*.* ${2}rec/*.*
+    exit 1
+  else
+# 偽データ
+    echo "ＭＸテレビ" 1970 01 01 09:00 09:30 "無効タイトル"
+  fi
 }
-# prefix内容チェック
+iepgex () {
+  cat "${1}iepg/iepg.php?PID=${2}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n\|<\|>//g"
+}
+getiepg () {
+  sleep 2 && /usr/bin/wget -P "${1}iepg/" http://cal.syoboi.jp/iepg.php?PID=${2} || pusherrmsg 2 ${1}
+}
+lsupdate () {
+  local lsd=${1}iepg.list
+  case ${3} in
+    del ) local iepgnum=`cat ${lsd} | sed -e "s/${2}//" -e "s/^$//"` ;;
+    upd ) local iepgnum=`cat ${lsd} | sed -e "s/${2}/$((${2}+1))/"` ;;
+  esac
+  echo ${iepgnum} | sed -e "s/\r\|\n//g" -e "s/ /\n/g" > ${stgfile}iepg.list
+}
+# ディレクトリ設定チェック
 ckstg=( "${usrdir}" "${stgfile}" "${reclist}" )
 for (( i = 0; i < ${#ckstg[@]}; i++ ))
 {
@@ -35,33 +56,43 @@ fi
 for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 {
   pgid+=( `cat "${stgfile}iepg.list" | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
-  sleep 2 && /usr/bin/wget -P "${reclist}iepg/" http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
+  getiepg ${reclist} ${pgid[i]}
 # ファイル処理
   unset data dt tm len nxtm sp
-  data=(`cat "${reclist}iepg/iepg.php?PID=${pgid[i]}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n//g"`)
-# 休止確認
-  nxtm=( `date -d "\`date +%Y%m%d\`" +%s` - `date -d "${data[1]}${data[2]}${data[3]}" +%s` )
-  nxtm=`echo $(( $(( ${nxtm[@]} )) / 86400 )) | grep ^- | sed -e "s/^-//"`
-  if [ -n "${nxtm}" -a 8 -le "${nxtm}" ]
-  then
-    sp="# "
-  fi
+  data=(`iepgex "${reclist}" "${pgid[i]}"`)
   while :
   do
-    if [ "${data[1]}${data[2]}${data[3]}" -lt `date +%Y%m%d` ]
+    if [ "${data[1]}" -lt "1971" ]
+    then
+# 番組存在しない
+      unset data
+      data=( `pusherrmsg 5 ${reclist} ${pgid[i]}` )
+      ngid+=( ${pgid[i]} )
+      sp="nodata"
+      break
+    elif [ "${data[1]}${data[2]}${data[3]}" -lt `date +%Y%m%d` ]
     then
 # データ古い時
       unset data
-      iepgnum=`cat ${stgfile}iepg.list | sed -e "s/${pgid[i]}/$((${pgid[i]}+1))/"`
-      echo ${iepgnum} | sed -e "s/\r\|\n//g" -e "s/ /\n/g" > ${stgfile}iepg.list
+      lsupdate ${stgfile} ${pgid[i]} upd
       rm "${reclist}iepg/iepg.php?PID=${pgid[i]}"
       pgid[i]=$(( ${pgid[i]} + 1 ))
-      sleep 2 && /usr/bin/wget -P "${reclist}iepg/" http://cal.syoboi.jp/iepg.php?PID=${pgid[i]} || pusherrmsg 2 ${reclist}
-      data=(`cat "${reclist}iepg/iepg.php?PID=${pgid[i]}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n//g"`)
+      getiepg ${reclist} ${pgid[i]}
+      data=(`iepgex "${reclist}" "${pgid[i]}"`)
     else
       break
     fi
   done
+# 休止確認
+  nxtm=( `date -d "\`date +%Y%m%d\`" +%s` - `date -d "${data[1]}${data[2]}${data[3]}" +%s` )
+  nxtm=`echo $(( $(( ${nxtm[@]} )) / 86400 )) | grep ^- | sed -e "s/^-//"`
+  if [ -n "${nxtm}" ]
+  then
+    if [ "8" -le "${nxtm}" ]
+    then
+      sp="# "
+    fi
+  fi
   for (( j = 0; j < ${#data[@]}; j++ ))
   {
     if [ -z "${data[j]}" ]
@@ -101,7 +132,14 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
     fi
   fi
 # 個別job生成
-  echo ${tm[1]} ${tm[0]} '*' '*' ${wk} "${usrdir}rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" ${pgid[i]} > ${reclist}rec/${pgid[i]}.list
+  case ${sp} in
+    nodata ) : > ${reclist}rec/rec${pgid[i]}.list ;;
+    * ) echo  ${sp}${tm[1]} ${tm[0]} '*' '*' ${wk} "${usrdir}rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" ${pgid[i]} > ${reclist}rec/rec${pgid[i]}.list ;;
+  esac
+}
+for (( i = 0; i < ${#ngid[@]}; i++ ))
+{
+  lsupdate ${stgfile} ${ngid[i]} del
 }
 # 個別job生成確認
 ckjobdata=`cat ${reclist}rec/*.*`
