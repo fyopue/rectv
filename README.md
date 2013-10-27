@@ -72,9 +72,9 @@ PT3用TV録画スクリプト
   オプション、引数はありません。
 
   次のような書式のデータを生成します。  
-  0 0 * * 0 /home/usrdir/rectv/rectv.sh 20 29 "物語シリーズ_セカンドシーズン" 275088  
-  26 22 * * 0 /home/usrdir/rectv/rectv.sh 20 5 "てーきゅう(3)" 273803  
-  30 7 * * 2 /home/usrdir/rectv/rectv.sh 23 29 "マイリトルポニー" 274718  
+  0 0 * * 0 /home/usrdir/rectv/rectv.sh 20 29 "物語シリーズ_セカンドシーズン"  
+  26 22 * * 0 /home/usrdir/rectv/rectv.sh 20 5 "てーきゅう(3)"  
+  30 7 * * 2 /home/usrdir/rectv/rectv.sh 23 29 "マイリトルポニー"  
 
 ※注意：  
   実行すると、既存のjobをすべて上書きします。  
@@ -83,14 +83,11 @@ PT3用TV録画スクリプト
   また、万一のためにcrontabの定期的なバックアップを必ず行なってください。  
 
 ・録画スクリプト  
-  $ /home/usrdir/rectv/rectv.sh [チャンネル番号] [時間（分）] ["タイトル"] [iepg番号]  
+  $ /home/usrdir/rectv/rectv.sh [チャンネル番号] [時間（分）] ["タイトル"]  
   使用サンプル :  
-  $ /home/usrdir/rectv/rectv.sh 20 29 "物語シリーズ_セカンドシーズン" 275088  
+  $ /home/usrdir/rectv/rectv.sh 20 29 "物語シリーズ_セカンドシーズン"  
 
   録画スクリプトは[チャンネル番号] [時間（分）] ["タイトル"]を引数として読み込み指定の時間分録画を行います。  
-  オプションの引数として[iepg番号]を指定することができます。  
-  これは、Cronjob生成スクリプトで使用するiepg.listを更新するための数値です。
-
 
 
 TV Program Generator for PT3 (recdgen.sh)  
