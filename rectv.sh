@@ -2,7 +2,6 @@
 # $1 -- ch_num
 # $2 -- rec_min
 # $3 -- title
-# $4 -- iepg seed
 #stgfile="/home/`/usr/bin/whoami`/rectv/stgdir/"
 stgfile="`/usr/bin/dirname ${0}`/recstg/"
 # hdd-id
@@ -37,8 +36,3 @@ esac
 cd /media/${dr}/recdir/ || exit
 /usr/local/bin/recpt1 --b25 --strip --sid ${sid} ${1} ${mt} ${1}_${3}_${dt}.ts
 echo "${dr}" > "${stgfile}drive.list"
-if [ -n "${4}" ]
-then
-  sleep $(($RANDOM%50)) && iepgnum=`cat ${stgfile}iepg.list | sed -e "s/${4}/$(( ${4} + 1 ))/"`
-  echo ${iepgnum} | sed -e "s/\r\|\n//g" -e "s/ /\n/g" > ${stgfile}iepg.list
-fi
