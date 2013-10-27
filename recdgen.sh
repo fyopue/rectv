@@ -1,6 +1,5 @@
 #!/bin/bash
 # ディレクトリ設定
-#usrdir="/home/`/usr/bin/whoami`/"
 usrdir="`/usr/bin/dirname ${0}`/"
 stgfile=${usrdir}recstg/
 reclist=/tmp/
@@ -24,7 +23,7 @@ pusherrmsg () {
   fi
 }
 iepgex () {
-  cat "${1}iepg/iepg.php?PID=${2}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n\|<\|>//g"
+  cat "${1}iepg/iepg.php?PID=${2}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n\|<\|>//g" -e "s/ \|　/_/g"
 }
 getiepg () {
   sleep 2 && /usr/bin/wget -P "${1}iepg/" http://cal.syoboi.jp/iepg.php?PID=${2} || pusherrmsg 2 ${1}
@@ -134,7 +133,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 # 個別job生成
   case ${sp} in
     nodata ) : > ${reclist}rec/rec${pgid[i]}.list ;;
-    * ) echo  ${sp}${tm[1]} ${tm[0]} '*' '*' ${wk} "${usrdir}rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" ${pgid[i]} > ${reclist}rec/rec${pgid[i]}.list ;;
+    * ) echo  ${sp}${tm[1]} ${tm[0]} '*' '*' ${wk} "${usrdir}rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" > ${reclist}rec/rec${pgid[i]}.list ;;
   esac
 }
 for (( i = 0; i < ${#ngid[@]}; i++ ))
