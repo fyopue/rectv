@@ -12,6 +12,7 @@ pusherrmsg () {
     3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
     4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
     5 ) echo "${errtime} : 番組情報が存在しないため ${3} をリストから削除しました。放送が終了したか、存在しない番組です。" ;;
+    6 ) echo "${errtime} : 受信できない番組です。 ${3} をリストから削除しました。" ;;
   esac >> /tmp/recdgen_err.log
   if [ -z "${3}" ]
   then
@@ -105,6 +106,13 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
       * ) dt+=${data[j]} ;;
     esac
   }
+  if [ -z "${ch[1]}" ]
+  then
+# 放送局遠い
+    ngid+=( ${pgid[i]} )
+    sp="nodata"
+    pusherrmsg 6 ${reclist} ${pgid[i]}
+  fi
   wk=`date -d ${dt} "+%w"`
 # 開始終了時刻確認
   st=$(( $(( ${tm[0]} * 60 )) + ${tm[1]} ))
