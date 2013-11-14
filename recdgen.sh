@@ -88,7 +88,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
   nxtm=`echo $(( $(( ${nxtm[@]} )) / 86400 )) | grep ^- | sed -e "s/^-//"`
   if [ -n "${nxtm}" ]
   then
-    if [ "8" -le "${nxtm}" ]
+    if [ "7" -le "${nxtm}" ]
     then
       sp="# "
     fi
