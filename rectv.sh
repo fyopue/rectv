@@ -14,7 +14,7 @@ case "${1}" in
   "103" | "910" ) sid=${1} ;;
   * ) sid=hd ;;
 esac
-flag=`cat "${stgfile}drive.txt"`
+flag=`cat "${stgfile}drive.list"`
 case ${flag} in
   ${d1} ) ;;
   ${d2} ) d2=${d1}
@@ -34,7 +34,7 @@ case ${dck} in
   * ) dr=${d1} ;;
 esac
 cd /media/${dr}/recdir/ || exit
-echo "${dr}" > "${stgfile}drive.txt"
+echo "${dr}" > "${stgfile}drive.list"
 # 二重録画防止
 if [ ! -d "/tmp/running" ]
 then
