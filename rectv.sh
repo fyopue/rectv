@@ -14,7 +14,7 @@ case "${1}" in
   "103" | "910" ) sid=${1} ;;
   * ) sid=hd ;;
 esac
-flag=`cat "${stgfile}drive.list"`
+flag=`cat "${stgfile}drive.txt"`
 case ${flag} in
   ${d1} ) ;;
   ${d2} ) d2=${d1}
@@ -34,5 +34,29 @@ case ${dck} in
   * ) dr=${d1} ;;
 esac
 cd /media/${dr}/recdir/ || exit
-/usr/local/bin/recpt1 --b25 --strip --sid ${sid} ${1} ${mt} ${1}_${3}_${dt}.ts
-echo "${dr}" > "${stgfile}drive.list"
+echo "${dr}" > "${stgfile}drive.txt"
+# 二重録画防止
+if [ ! -d "/tmp/running" ]
+then
+  mkdir "/tmp/running"
+fi
+# プロセスが存在するかチェック
+spid=$$
+pdo=(`pidof recpt1`)
+if [ ${#pdo[@]} -eq 0 ]
+then
+  rm /tmp/running/*
+elif [ ${#pdo[@]} -gt 0 ]
+then
+# 同一番組かチェック
+  kproc=(`cat /tmp/running/* | $g "${1} ${3}" | $g -v ${spid}`)
+  if [ -n "${kproc[2]}" ]
+  then
+    kill ${kproc[2]} && rm /tmp/running/${kproc[2]}
+    sleep 1
+  fi
+fi
+/usr/local/bin/recpt1 --b25 --strip --sid ${sid} ${1} ${mt} ${1}_${3}_${dt}.ts &
+# 実行情報の保存
+rpid=$!
+echo ${1} ${3} ${rpid} ${spid} > /tmp/running/${rpid}
