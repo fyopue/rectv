@@ -150,8 +150,14 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
     if [ ${st} -eq 0 ]
     then
       tm[0]=23
-      tm[1]=$(( 6${tm[1]} - 1 ))
+      tm[1]=60
+      tm[1]=$(( ${tm[1]} - 1 ))
     else
+      if [ ${tm[1]} -eq 0 ]
+      then
+        tm[0]=$(( ${tm[0]} - 1 ))
+        tm[1]=60
+      fi
       tm[1]=$(( ${tm[1]} - 1 ))
     fi
   fi
