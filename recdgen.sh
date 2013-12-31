@@ -151,15 +151,12 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
     then
       tm[0]=23
       tm[1]=60
-      tm[1]=$(( ${tm[1]} - 1 ))
-    else
-      if [ ${tm[1]} -eq 0 ]
-      then
-        tm[0]=$(( ${tm[0]} - 1 ))
-        tm[1]=60
-      fi
-      tm[1]=$(( ${tm[1]} - 1 ))
+    elif [ ${tm[1]} -eq 0 ]
+    then
+      tm[0]=$(( ${tm[0]} - 1 ))
+      tm[1]=60
     fi
+    tm[1]=$(( ${tm[1]} - 1 ))
   fi
 # 削除判定
   ckdel=`/usr/bin/crontab -l | grep -i "ng$" | grep "${ch[1]} ${len} \"${ttl}\""`
