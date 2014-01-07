@@ -5,6 +5,11 @@
 #stgfile="/home/`/usr/bin/whoami`/rectv/stgdir/"
 stgfile="`/usr/bin/dirname ${0}`/recstg/"
 # hdd-id
+#わざわざベタ書きするより楽かもしれないけど動作は保証しない
+#DVDとか入れたら確実に紛れ込んでくるし・・・
+# drv=( `ls /media/ | /usr/bin/sort` )
+# d1="${drv[0]}"
+# d2="${drv[1]}"
 d1="hdd-id01"
 d2="hdd-id02"
 g="grep"
