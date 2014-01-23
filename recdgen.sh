@@ -1,13 +1,14 @@
 #!/bin/bash
 # ディレクトリ設定
-usrdir="`/usr/bin/dirname ${0}`/"
+ub=/usr/bin/
+usrdir="`${ub}dirname ${0}`/"
 stgfile=${usrdir}recstg/
 reclist=/tmp/
 # エラー処理
 pusherrmsg () {
   local errtime=`date "+%Y/%m/%d %H:%M:%S"`
   case ${1} in
-    1 ) echo "${errtime} : ディレクトリの設定が間違っているようです。末尾にスラッシュがあるか確認してください。" >> /tmp/recdgen_err.log && exit 1 ;;
+    1 ) echo "${errtime} : ディレクトリの設定が間違っているようです。末尾にスラッシュがあるか確認してください。" ;;
     2 ) echo "${errtime} : ファイルの取得に失敗しました。iepg.list または ネットワークを確認してください。" ;;
     3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
     4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
@@ -27,31 +28,24 @@ pusherrmsg () {
   fi
 }
 iepgex () {
-  local mlt=( `echo ${2} | sed "s/m/ /"` )
-  cat "${1}iepg/iepg.php?PID=${mlt[0]}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-\|[a-z]*: \|\r\|\n\|<\|>\|//g" -e "s/ \|　\|\//_/g"
-  unset mlt
+  cat "${1}iepg/iepg.php?PID=${2}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-[a-z]*: \|[a-z]*: \|\r\|\n\|<\|>\|-//g" -e "s/ \|　\|\//_/g"
 }
 getiepg () {
-  local mlt=( `echo ${2} | sed "s/m/ /"` )
-  sleep 2 && ${ub}wget -P "${1}iepg/" http://cal.syoboi.jp/iepg.php?PID=${mlt[0]} || pusherrmsg 2 ${1}
-  echo ${mlt[1]}
-  unset mlt
+  sleep 2 && ${ub}wget -P "${1}iepg/" http://cal.syoboi.jp/iepg.php?PID=${2} || pusherrmsg 2 ${1}
 }
 lsupdate () {
-  local lsd=${1}iepg.list
-  local mlt=( `echo ${2} | sed "s/m/ /"` )
-  case ${3} in
-    del ) local iepgnum=`cat ${lsd} | ${ub}sort | ${ub}uniq | sed -e "s/${2}//" -e "s/^$//"` ;;
-    upd ) local iepgnum=`cat ${lsd} | sed -e "s/${mlt[0]}/$((${mlt[0]}+1))/"` ;;
+  local lsd=${2}iepg.list
+  case ${1} in
+    del ) local iepgnum=`cat ${lsd} | ${ub}sort | ${ub}uniq | sed -e "s/${3}//" -e "s/^$//"` ;;
+    upd ) local iepgnum=`cat ${lsd} | sed -e "s/${3}${4}/$((${3}+1))${4}/"` ;;
   esac
   echo ${iepgnum} | sed -e "s/\r\|\n//g" -e "s/ /\n/g" > ${stgfile}iepg.list
-  unset mlt
 }
 # ディレクトリ設定チェック
 ckstg=( "${usrdir}" "${stgfile}" "${reclist}" )
 for (( i = 0; i < ${#ckstg[@]}; i++ ))
 {
-  echo ${ckstg[i]} | grep /$ || pusherrmsg 1
+  echo ${ckstg[i]} | grep /$ || pusherrmsg 1 ${reclist}
 }
 # 作業ディレクトリ
 if [ ! -d "${reclist}rec" ]
@@ -66,19 +60,23 @@ fi
 for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 {
   pgid+=( `cat "${stgfile}iepg.list" | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
-  multi=`getiepg ${reclist} ${pgid[i]}`
+  unset mlt sd
+  sd=( `echo ${pgid[i]} | sed "s/s/ s/"` )
+  mlt=( `echo ${sd[0]} | sed "s/m/ m/"` )
+  multi=`echo ${mlt[1]} |sed "s/m//"`
+  getiepg ${reclist} ${mlt[0]}
 # ファイル処理
   unset data dt tm len nxtm sp atpt
-  data=(`iepgex "${reclist}" "${pgid[i]}"`)
+  data=(`iepgex "${reclist}" "${mlt[0]}"`)
   atpt=1
   while :
   do
-    if [ "${data[1]}" -lt "1971" ]
+    if [ -z "${data}" ]
     then
 # 番組存在しない
       unset data
-      data=( `pusherrmsg 5 ${reclist} ${pgid[i]}` )
-      ngid+=( ${pgid[i]} )
+      data=( `pusherrmsg 5 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}` )
+      ngid+=( ${mlt[0]}${mlt[1]}${sd[1]} )
       sp="nodata"
       break
     elif [ "${data[1]}${data[2]}${data[3]}" -lt `date +%Y%m%d` ]
@@ -88,24 +86,22 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
       if [ "${atpt}" -eq "4" ]
       then
 # 4回目で終了
-        data=( `pusherrmsg 7 ${reclist} ${pgid[i]}` )
-        ngid+=( ${pgid[i]} )
+        data=( `pusherrmsg 7 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}` )
+        ngid+=( ${mlt[0]}${mlt[1]}${sd[1]} )
         sp="nodata"
         break
       elif [ "${atpt}" -eq "3" ]
       then
-        pusherrmsg 8 ${reclist} ${pgid[i]}
+        pusherrmsg 8 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}
         atpt=$(( ${atpt} + 1 ))
       else
         atpt=$(( ${atpt} + 1 ))
       fi
-      lsupdate ${stgfile} ${pgid[i]} upd
-      mlt=( `echo ${pgid[i]} | sed "s/m/ m/"` )
+      lsupdate upd ${stgfile} ${mlt[0]} ${mlt[1]}${sd[1]}
       rm "${reclist}iepg/iepg.php?PID=${mlt[0]}"
-      pgid[i]=$(( ${mlt[0]} + 1 ))${mlt[1]}
-      unset mlt
-      multi=`getiepg ${reclist} ${pgid[i]}`
-      data=(`iepgex "${reclist}" "${pgid[i]}"`)
+      mlt[0]=$(( ${mlt[0]} + 1 ))
+      getiepg ${reclist} ${mlt[0]}
+      data=(`iepgex "${reclist}" "${mlt[0]}"`)
     else
       break
     fi
@@ -137,9 +133,9 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
   if [ -z "${ch[1]}" ]
   then
 # 放送局遠い
-    ngid+=( ${pgid[i]} )
+    ngid+=( ${mlt[0]}${mlt[1]}${sd[1]} )
     sp="nodata"
-    pusherrmsg 6 ${reclist} ${pgid[i]}
+    pusherrmsg 6 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}
   fi
   wk=`date -d ${dt} "+%w"`
 # 開始終了時刻確認
@@ -153,7 +149,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 # 録画時間確認
   len=$(( $(( ${ed} - ${st} )) / 60 ))
   mtlen=${len}
-  if [ ${len} -le 9 ]
+  if [ ${len} -le 10 ]
   then
     len=$(( ${len} + 1 ))
     stprg=( `date -d "${tm[0]}:${tm[1]} 1 minutes ago" "+%H %M"` )
@@ -164,20 +160,20 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
     len=$(( ${len} - 1 ))
   fi
 # 削除判定
-  ckdel=`${ub}crontab -l | grep -i "ng$" | grep "${ch[1]} ${len} \"${ttl}\""`
+  ckdel=`${ub}crontab -l | grep -i "ng$" | grep "${ch[1]}${sd[1]} ${len} \"${ttl}\""`
   if [ -n "${ckdel}" ]
   then
-    ngid+=( ${pgid[i]} )
+    ngid+=( ${mlt[0]}${mlt[1]}${sd[1]} )
     sp="nodata"
-    pusherrmsg 9 ${reclist} ${pgid[i]}
+    pusherrmsg 9 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}
   fi
 # 個別job生成
   case ${sp} in
-    nodata ) : > ${reclist}rec/rec${pgid[i]}.list ;;
+    nodata ) : > ${reclist}rec/rec${mlt[0]}.list ;;
     * )
       while :
       do
-        echo ${sp}${tm[1]} ${tm[0]} '*' '*' ${wk} "${usrdir}rectv.sh" ${ch[1]} ${len} "\"${ttl}\"" >> ${reclist}rec/rec${pgid[i]}.list
+        echo ${sp}${tm[1]} ${tm[0]} '*' '*' ${wk} "${usrdir}rectv.sh" ${ch[1]}${sd[1]} ${len} "\"${ttl}\"" >> ${reclist}rec/rec${mlt[0]}.list
         if [ -n "${multi}" ]
         then
           mltprg=( `date -d "${tm[0]}:${tm[1]} ${mtlen} minutes" "+%H %M"` )
@@ -198,7 +194,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 }
 for (( i = 0; i < ${#ngid[@]}; i++ ))
 {
-  lsupdate ${stgfile} ${ngid[i]} del
+  lsupdate del ${stgfile} ${ngid[i]}
 }
 # 個別job生成確認
 ckjobdata=`cat ${reclist}rec/*.*`
