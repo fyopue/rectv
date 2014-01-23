@@ -17,6 +17,12 @@ dt=`date +%y%m%d%H%M%S`
 mt=$(( 60 * ${2} ))
 case "${1}" in
   "103" | "910" ) sid=${1} ;;
+  [0-9]*sd ) sid=sd
+    set `echo ${1} | sed "s/sd//"` ${2} ${3} ;;
+  [0-9]*s2 ) sid=sd2
+    set `echo ${1} | sed "s/s2//"` ${2} ${3} ;;
+  [0-9]*s3 ) sid=sd3
+    set `echo ${1} | sed "s/s3//"` ${2} ${3} ;;
   * ) sid=hd ;;
 esac
 flag=`cat "${stgfile}drive.list"`
