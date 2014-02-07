@@ -12,11 +12,11 @@ pusherrmsg () {
     2 ) echo "${errtime} : ファイルの取得に失敗しました。iepg.list または ネットワークを確認してください。" ;;
     3 ) echo "${errtime} : 取得データに異常があります。iepg.listを確認してください。" ;;
     4 ) echo "${errtime} : 予約情報の生成に失敗したようです。設定ファイル、ディレクトリ設定、ネットワークの状態を確認してください。" ;;
-    5 ) echo "${errtime} : 番組情報が存在しないため ${3} をリストから削除しました。放送が終了したか、存在しない番組です。" ;;
-    6 ) echo "${errtime} : 受信できない番組です。 ${3} をリストから削除しました。" ;;
-    7 ) echo "${errtime} : 意図しない番組予約を行おうとしています。 ${3} をリストから削除しました。番号の間違い、または、連番の開始位置の変更があった可能性があります。iepg.listを確認・修正してください。" ;;
-    8 ) echo "${errtime} : 意図しない番組予約を行った可能性があります。該当する番号は ${3} です。iepg.listを確認してください。" ;;
-    9 ) echo "${errtime} : ${3} をリストから削除しました。" ;;
+    5 ) echo "${errtime} : 番組情報が存在しないため ${3} ${4} をリストから削除しました。放送が終了したか、存在しない番組です。" ;;
+    6 ) echo "${errtime} : 受信できない番組です。 ${3} ${4} をリストから削除しました。" ;;
+    7 ) echo "${errtime} : 意図しない番組予約を行おうとしています。 ${3} ${4} をリストから削除しました。番号の間違い、または、連番の開始位置の変更があった可能性があります。iepg.listを確認・修正してください。" ;;
+    8 ) echo "${errtime} : 意図しない番組予約を行った可能性があります。該当する番号は ${3} ${4} です。iepg.listを確認してください。" ;;
+    9 ) echo "${errtime} : ${3} ${4} をリストから削除しました。" ;;
   esac >> /tmp/recdgen_err.log
   if [ -z "${3}" ]
   then
@@ -75,7 +75,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
     then
 # 番組存在しない
       unset data
-      data=( `pusherrmsg 5 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}` )
+      data=( `pusherrmsg 5 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]} ${data[6]}` )
       ngid+=( ${mlt[0]}${mlt[1]}${sd[1]} )
       sp="nodata"
       break
@@ -86,13 +86,13 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
       if [ "${atpt}" -eq "4" ]
       then
 # 4回目で終了
-        data=( `pusherrmsg 7 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}` )
+        data=( `pusherrmsg 7 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]} ${data[6]}` )
         ngid+=( ${mlt[0]}${mlt[1]}${sd[1]} )
         sp="nodata"
         break
       elif [ "${atpt}" -eq "3" ]
       then
-        pusherrmsg 8 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}
+        pusherrmsg 8 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]} ${data[6]}
         atpt=$(( ${atpt} + 1 ))
       else
         atpt=$(( ${atpt} + 1 ))
@@ -135,7 +135,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 # 放送局遠い
     ngid+=( ${mlt[0]}${mlt[1]}${sd[1]} )
     sp="nodata"
-    pusherrmsg 6 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}
+    pusherrmsg 6 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]} ${data[6]}
   fi
   wk=`date -d ${dt} "+%w"`
 # 開始終了時刻確認
@@ -165,7 +165,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
   then
     ngid+=( ${mlt[0]}${mlt[1]}${sd[1]} )
     sp="nodata"
-    pusherrmsg 9 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]}
+    pusherrmsg 9 ${reclist} ${mlt[0]}${mlt[1]}${sd[1]} ${data[6]}
   fi
 # 個別job生成
   case ${sp} in
