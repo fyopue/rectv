@@ -27,12 +27,36 @@ pusherrmsg () {
     echo "ＭＸテレビ" 1970 01 01 09:00 09:30 "無効タイトル"
   fi
 }
+# データ抽出
 iepgex () {
-  cat "${1}iepg/iepg.php?PID=${2}"  | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/[a-z]*-[a-z]*: \|[a-z]*: \|\r\|\n\|<\|>\|-//g" -e "s/ \|　\|\//_/g"
+  cat "${1}iepg/iepg.php?PID=${2}" | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/^[a-z].*: \|\r\|\n\|<\|>\|-//g" -e "s/ \|　\|\//_/g"
 }
+# 誰かの善意に頼り切った自動展開
+# 日付を跨ぐと正常に動作しない 要検討
+mltpgex () {
+  local ckmlt=`cat "${1}iepg/iepg.php?PID=${2}" | iconv -f cp932 -t utf-8 | tail -1 | grep -e "連続放送" -e "一挙放送" | wc -l`
+  if [ "1" -eq "${ckmlt}" ]
+  then
+    while :
+    do
+      local seed=$(( ${2} + ${ckmlt} ))
+      getiepg "${1}" "${seed}"
+      local mltdata=(`iepgex "${1}" "${seed}"`)
+      if [ "${3}" -ne "${mltdata[3]}" ]
+      then
+        echo ${ckmlt}
+        break
+      fi
+      local ckmlt=$(( ${ckmlt} + 1 ))
+      unset mltdata
+    done
+  fi
+}
+# データ取得
 getiepg () {
   sleep 2 && ${ub}wget -P "${1}iepg/" http://cal.syoboi.jp/iepg.php?PID=${2} || pusherrmsg 2 ${1}
 }
+# リスト更新
 lsupdate () {
   local lsd=${2}iepg.list
   case ${1} in
@@ -60,7 +84,7 @@ fi
 for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 {
   pgid+=( `cat "${stgfile}iepg.list" | head -$(( ${i} +1 )) | tail -1 | sed -e "s/\r\|\n//g"` )
-  unset mlt sd
+  unset mlt sd automlt
   sd=( `echo ${pgid[i]} | sed "s/s/ s/"` )
   mlt=( `echo ${sd[0]} | sed "s/m/ m/"` )
   multi=`echo ${mlt[1]} |sed "s/m//"`
@@ -68,6 +92,7 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 # ファイル処理
   unset data dt tm len nxtm sp atpt
   data=(`iepgex "${reclist}" "${mlt[0]}"`)
+  automlt=`mltpgex "${reclist}" "${mlt[0]}" "${data[3]}"`
   atpt=1
   while :
   do
@@ -102,13 +127,14 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
       mlt[0]=$(( ${mlt[0]} + 1 ))
       getiepg ${reclist} ${mlt[0]}
       data=(`iepgex "${reclist}" "${mlt[0]}"`)
+      automlt=`mltpgex "${reclist}" "${mlt[0]}" "${data[3]}"`
     else
       break
     fi
   done
 # 休止確認
-  nxtm=( `date -d "\`date +%Y%m%d\`" +%s` - `date -d "${data[1]}${data[2]}${data[3]}" +%s` )
-  nxtm=`echo $(( $(( ${nxtm[@]} )) / 86400 )) | grep ^- | sed -e "s/^-//"`
+  nxtm=( `date -d "${data[1]}${data[2]}${data[3]}" +%s` - `date -d "\`date +%Y%m%d\`" +%s` )
+  nxtm=$(( $(( ${nxtm[@]} )) / 86400 ))
   if [ -n "${nxtm}" ]
   then
     if [ "7" -le "${nxtm}" ]
@@ -149,6 +175,10 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
 # 録画時間確認
   len=$(( $(( ${ed} - ${st} )) / 60 ))
   mtlen=${len}
+  if [ -n "${automlt}" ]
+  then
+    len=$(( ${len} * ${automlt} ))
+  fi
   if [ ${len} -le 10 ]
   then
     len=$(( ${len} + 1 ))
@@ -203,7 +233,13 @@ then
   pusherrmsg 4 ${reclist}
 else
 # job生成
-  cat ${reclist}rec/*.* "${stgfile}routine.list" | ${ub}sort -k 5 > "${reclist}rec.list"
+#  cat ${reclist}rec/*.* "${stgfile}routine.list" | ${ub}sort -k 5 > "${reclist}rec.list"
+  cat ${reclist}rec/*.* "${stgfile}routine.list" | grep "\* \* \*" | sort -k 2 > "${reclist}rec.list"
+  cat ${reclist}rec/*.* "${stgfile}routine.list" | grep "^#" | sort -k 6 >> "${reclist}rec.list"
+  for (( i = 0; i < 7; i++ ))
+  {
+    cat ${reclist}rec/*.* "${stgfile}routine.list" | grep "\* \* ${i}" | sort -k 2 | grep -v "#" >> "${reclist}rec.list"
+  }
 fi
 # crontab登録
 ${ub}crontab "${reclist}rec.list"
