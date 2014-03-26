@@ -29,7 +29,7 @@ pusherrmsg () {
 }
 # データ抽出
 iepgex () {
-  cat "${1}iepg/iepg.php?PID=${2}" | iconv -f cp932 -t utf-8 | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/^[a-z].*: \|\r\|\n\|<\|>\|-//g" -e "s/ \|　\|\//_/g"
+  cat "${1}iepg/iepg.php?PID=${2}" | iconv -f cp932 -t utf-8 | grep -iv "extend" | grep -e "year" -e "month" -e "date" -e "start" -e "end" -e "program-title" -e "station" | sed -e "s/^[a-z].*: \|\r\|\n\|<\|>\|-//g" -e "s/ \|　\|\//_/g"
 }
 # 誰かの善意に頼り切った自動展開
 # 日付を跨ぐと正常に動作しない 要検討
@@ -186,7 +186,8 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
     tm[0]=${stprg[0]}
     tm[1]=${stprg[1]}
     unset stprg
-  else
+  elif [ ${len} -ge 28 ]
+  then
     len=$(( ${len} - 1 ))
   fi
 # 削除判定
