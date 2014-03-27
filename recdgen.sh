@@ -188,7 +188,10 @@ for (( i = 0; i < `cat "${stgfile}iepg.list" | wc -w`; i++ ))
     unset stprg
   elif [ ${len} -ge 28 ]
   then
-    len=$(( ${len} - 1 ))
+    case ${ch} in
+      "26" | "27" ) ;;
+      * ) len=$(( ${len} - 1 )) ;;
+    esac
   fi
 # 削除判定
   ckdel=`${ub}crontab -l | grep -i "ng$" | grep "${ch[1]}${sd[1]} ${len} \"${ttl}\""`
