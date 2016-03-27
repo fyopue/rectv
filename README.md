@@ -7,7 +7,6 @@ PT3用TV録画スクリプト
 
   作成：まほろば紳士ちゃん☆ゆうゆゆう（fyopue）  
   Twitter： fyopue  
-  blog： http://www.kotokoi.org/  
   github： https://github.com/fyopue/
 
   このスクリプトはbash上で動くスクリプトです。  
