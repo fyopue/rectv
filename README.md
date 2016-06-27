@@ -5,7 +5,7 @@ PT3用TV録画スクリプト
 
 著作権表示 / 免責事項 / その他諸注意
 
-  作成：まほろば紳士ちゃん☆ゆうゆゆう（fyopue）  
+  作成：まほろば紳士（fyopue）  
   Twitter： fyopue  
   github： https://github.com/fyopue/
 
